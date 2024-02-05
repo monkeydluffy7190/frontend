@@ -1,34 +1,138 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
+import SignUpForm from "./components/Signup";
+import LoginForm from "./components/Login";
+import { login, signup } from "./services/api";
+import toast, { Toaster } from "react-hot-toast";
+import { getErrorMessage } from "./functions";
+import Table from "./components/Table";
 
-function App() {
+const App = () => {
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [showLoginForm, setShowLoginForm] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  // Check localStorage for token and username on component mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedUsername = localStorage.getItem("username");
+
+    if (storedToken && storedUsername) {
+      setLoggedInUser(storedUsername);
+    }
+  }, []);
+
+  const handleSignUp = async (username, password) => {
+    try {
+      if (!username || !password) {
+        return toast.error("Please fill all details");
+      }
+
+      // Validate username (no spaces allowed)
+      if (/\s/.test(username)) {
+        return toast.error("Username should not contain spaces");
+      }
+
+      setLoading(true);
+
+      const res = await signup(username, password);
+
+      // Store token and username in localStorage
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("username", username);
+
+      toast.success(res.message);
+      setShowLoginForm(true);
+      setLoggedInUser(username);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (username, password) => {
+    try {
+      if (!username || !password) {
+        return toast.error("Please fill all details");
+      }
+
+      // Validate username (no spaces allowed)
+      if (/\s/.test(username)) {
+        return toast.error("Username should not contain spaces");
+      }
+
+      setLoading(true);
+
+      const res = await login(username, password);
+
+      // Store token and username in localStorage
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("username", username);
+
+      toast.success(res.message);
+      setShowLoginForm(true);
+      setLoggedInUser(username);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    // Clear token and username from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    setLoggedInUser(null);
+  };
+
+  const toggleForm = () => {
+    setShowLoginForm((prev) => !prev);
+  };
+
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-gray-200 text-gray-700">
-      <div className="flex items-center">
-        <h1 className="text-6xl font-thin tracking-wider">Create React App + Tailwind CSS</h1>
-      </div>
-      <p className="my-6 tracking-wide">
-        Edit <code>src/App.js</code> and save to reload.
-      </p>
-      <div className="mt-6 flex justify-center">
-        <a
-          className="uppercase hover:underline"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="ml-10 uppercase hover:underline"
-          href="https://tailwindcss.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn Tailwind
-        </a>
+    <div>
+      <Toaster />
+      <nav className="bg-gray-800 p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">
+              {loggedInUser ? `Welcome, ${loggedInUser}!` : "My App"}
+            </h1>
+          </div>
+          <div>
+            {loggedInUser ? (
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={toggleForm}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                {showLoginForm ? "Switch to Sign Up" : "Switch to Login"}
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <div className="mt-4 p-4">
+        {loggedInUser ? (
+          <>
+            <Table setLoggedInUser={setLoggedInUser}/>
+          </>
+        ) : showLoginForm ? (
+          <LoginForm onLogin={handleLogin} loading={loading} />
+        ) : (
+          <SignUpForm onSignUp={handleSignUp} loading={loading} />
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default App;
