@@ -15,9 +15,10 @@ const App = () => {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUsername = localStorage.getItem("username");
+    const storedUserId = localStorage.getItem("id");
 
     if (storedToken && storedUsername) {
-      setLoggedInUser(storedUsername);
+      setLoggedInUser({userName:storedUsername,id:storedUserId});
     }
   }, []);
 
@@ -39,10 +40,11 @@ const App = () => {
       // Store token and username in localStorage
       localStorage.setItem("token", res.token);
       localStorage.setItem("username", username);
+      localStorage.setItem("id",res.id);
 
       toast.success(res.message);
       setShowLoginForm(true);
-      setLoggedInUser(username);
+      setLoggedInUser({userName:username,id:res.id});
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -68,10 +70,11 @@ const App = () => {
       // Store token and username in localStorage
       localStorage.setItem("token", res.token);
       localStorage.setItem("username", username);
+      localStorage.setItem("id",res.id);
 
       toast.success(res.message);
       setShowLoginForm(true);
-      setLoggedInUser(username);
+      setLoggedInUser({userName:username,id:res.id});
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -83,6 +86,7 @@ const App = () => {
     // Clear token and username from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("id");
     setLoggedInUser(null);
   };
 
@@ -97,7 +101,7 @@ const App = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">
-              {loggedInUser ? `Welcome, ${loggedInUser}!` : "My App"}
+              {loggedInUser ? `Welcome, ${loggedInUser.userName}!` : "My App"}
             </h1>
           </div>
           <div>
@@ -123,7 +127,7 @@ const App = () => {
       <div className="mt-4 p-4">
         {loggedInUser ? (
           <>
-            <Table setLoggedInUser={setLoggedInUser}/>
+            <Table setLoggedInUser={setLoggedInUser} loggedInUser={loggedInUser}/>
           </>
         ) : showLoginForm ? (
           <LoginForm onLogin={handleLogin} loading={loading} />
