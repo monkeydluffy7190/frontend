@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
 import {
-  deleteFormData,
-  getAllFormData,
+  getFormData,
   saveFormData,
-  updateFormData,
 } from "../services/api";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../functions";
 
-const Table = ({ setLoggedInUser }) => {
+const Table = ({ setLoggedInUser, loggedInUser }) => {
+  console.log(loggedInUser)
   const [data, setData] = useState([]);
   const [formData, setFormData] = useState({
     accountName: "",
     sentInvitation: 0,
     connections: 0,
     noOfBotFileNames: 0,
+    id: loggedInUser.id
   });
-  const [editingId, setEditingId] = useState(null);
+
 
   // Fetch data on component mount
   useEffect(() => {
@@ -26,7 +27,7 @@ const Table = ({ setLoggedInUser }) => {
   const fetchData = async () => {
     try {
       // Replace 'API_ENDPOINT' with your actual API endpoint
-      const response = await getAllFormData();
+      const response = await getFormData(loggedInUser);
       setData(response);
     } catch (error) {
       const err = getErrorMessage(error);
@@ -37,26 +38,7 @@ const Table = ({ setLoggedInUser }) => {
     }
   };
 
-  const handleEdit = (id) => {
-    const editData = data.find((item) => item._id === id);
-    setFormData({ ...editData });
-    setEditingId(id);
-  };
 
-  const handleDelete = async (id) => {
-    try {
-      // Replace 'API_ENDPOINT' with your actual API endpoint
-      await deleteFormData(id);
-      setData((prevData) => prevData.filter((item) => item._id !== id));
-      toast.success("Message deleted successfully!");
-    } catch (error) {
-      const err = getErrorMessage(error);
-      if (err?.includes("Unauthorized")) {
-        setLoggedInUser(null);
-      }
-      toast.error(err);
-    }
-  };
 
   const handleSave = async () => {
     try {
@@ -70,16 +52,10 @@ const Table = ({ setLoggedInUser }) => {
       ) {
         return toast.error(`Values cann't be negative`);
       }
-      if (editingId !== null) {
-        // Update existing data
-        const res = await updateFormData(formData, editingId);
-        toast.success(res.message);
-      } else {
-        // Add new data
-        const res = await saveFormData(formData);
-        toast.success(res.message);
-      }
 
+      const res = await saveFormData(formData);
+      toast.success(res.message);
+  
       // Refetch data after save
       await fetchData();
 
@@ -89,8 +65,9 @@ const Table = ({ setLoggedInUser }) => {
         sentInvitation: 0,
         connections: 0,
         noOfBotFileNames: 0,
+        id:loggedInUser.id
       });
-      setEditingId(null);
+     
     } catch (error) {
       const err = getErrorMessage(error);
       if (err?.includes("Unauthorized")) {
@@ -112,7 +89,7 @@ const Table = ({ setLoggedInUser }) => {
             <th className="border border-green-600 p-2">
               No. of Bot File Names
             </th>
-            <th className="border border-green-600 p-2">Actions</th>
+            <th className="border border-green-600 p-2">Date</th>
           </tr>
         </thead>
         <tbody>
@@ -122,29 +99,18 @@ const Table = ({ setLoggedInUser }) => {
                 {item.accountName}
               </td>
               <td className="border border-green-600 p-2">
-                {item.sentInvitation === -1 ? "Absent" : item.sentInvitation}
+                { item.sentInvitation[item.sentInvitation.length-1] === -1 ? "Absent" : item.sentInvitation[item.sentInvitation.length-1]}
               </td>
               <td className="border border-green-600 p-2">
-                {item.connections === -1 ? "Absent" : item.connections}
+                {item.connections[item.sentInvitation.length-1] === -1 ? "Absent" : item.connections[item.sentInvitation.length-1]}
               </td>
               <td className="border border-green-600 p-2">
-                {item.noOfBotFileNames === -1
+                {item.noOfBotFileNames[item.sentInvitation.length-1] === -1
                   ? "Absent"
-                  : item.noOfBotFileNames}
+                  : item.noOfBotFileNames[item.sentInvitation.length-1]}
               </td>
               <td className="border border-green-600 p-2 space-x-2">
-                <button
-                  className="text-blue-500 hover:underline"
-                  onClick={() => handleEdit(item._id)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-red-500 hover:underline"
-                  onClick={() => handleDelete(item._id)}
-                >
-                  Delete
-                </button>
+              {format(new Date(item.Dates[item.sentInvitation.length-1]), 'MMM d yyyy')}
               </td>
             </tr>
           ))}
