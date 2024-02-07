@@ -27,27 +27,13 @@ export const saveFormData = async (formData) => {
   }
 };
 
-export const updateFormData = async (formData, id) => {
-  try {
-    const response = await http.put(`/formdata/${id}`, formData);
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-};
 
-export const deleteFormData = async (id) => {
-  try {
-    const response = await http.delete(`/formdata/${id}`);
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-};
 
-export const getAllFormData = async () => {
+
+
+export const getFormData = async (loggedInUser) => {
   try {
-    const response = await http.get("/formdata");
+    const response = await http.get(`/formdata/${loggedInUser.id}`);
     return response.data;
   } catch (error) {
     throw error.response.data;
